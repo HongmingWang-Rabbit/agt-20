@@ -1,0 +1,72 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+model Token {
+  id          String   @id @default(cuid())
+  tick        String   @unique
+  maxSupply   BigInt
+  mintLimit   BigInt
+  supply      BigInt   @default(0)
+  holders     Int      @default(0)
+  operations  Int      @default(0)
+  decimals    Int      @default(0)
+  deployer    String
+  deployedAt  DateTime @default(now())
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+  
+  balances    Balance[]
+  operations_ Operation[]
+}
+
+model Agent {
+  id          String   @id @default(cuid())
+  name        String   @unique
+  operations  Int      @default(0)
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+  
+  balances    Balance[]
+  fromOps     Operation[] @relation("FromAgent")
+  toOps       Operation[] @relation("ToAgent")
+}
+
+model Balance {
+  id        String @id @default(cuid())
+  tokenId   String
+  agentId   String
+  amount    BigInt @default(0)
+  
+  token     Token  @relation(fields: [tokenId], references: [id])
+  agent     Agent  @relation(fields: [agentId], references: [id])
+  
+  @@unique([tokenId, agentId])
+}
+
+model Operation {
+  id          String   @id @default(cuid())
+  type        String   // mint, transfer, burn, deploy
+  tokenId     String?
+  fromAgentId String?
+  toAgentId   String?
+  amount      BigInt?
+  postId      String   @unique
+  postUrl     String
+  createdAt   DateTime @default(now())
+  
+  token       Token?   @relation(fields: [tokenId], references: [id])
+  fromAgent   Agent?   @relation("FromAgent", fields: [fromAgentId], references: [id])
+  toAgent     Agent?   @relation("ToAgent", fields: [toAgentId], references: [id])
+}
+
+model IndexerState {
+  id          String   @id @default("singleton")
+  lastPostId  String?
+  lastIndexed DateTime @default(now())
+}
