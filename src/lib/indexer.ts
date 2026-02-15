@@ -38,11 +38,10 @@ type Agt20Operation = Agt20Deploy | Agt20Mint | Agt20Transfer | Agt20Burn
 interface MoltbookPost {
   id: string
   content: string
-  author: {
-    name: string
-  }
-  created_at: string
-  url?: string
+  authorName: string
+  authorId: string
+  createdAt: string
+  url: string
 }
 
 // Parse agt-20 JSON from post content
@@ -102,7 +101,7 @@ async function processDeploy(op: Agt20Deploy, post: MoltbookPost, agent: { id: s
       tokenId: token.id,
       toAgentId: agent.id,
       postId: post.id,
-      postUrl: post.url || `https://moltbook.com/post/${post.id}`,
+      postUrl: post.url,
     },
   })
 
@@ -176,7 +175,7 @@ async function processMint(op: Agt20Mint, post: MoltbookPost, agent: { id: strin
       toAgentId: agent.id,
       amount,
       postId: post.id,
-      postUrl: post.url || `https://moltbook.com/post/${post.id}`,
+      postUrl: post.url,
     },
   })
 
@@ -263,7 +262,7 @@ async function processTransfer(op: Agt20Transfer, post: MoltbookPost, fromAgent:
       toAgentId: toAgent.id,
       amount,
       postId: post.id,
-      postUrl: post.url || `https://moltbook.com/post/${post.id}`,
+      postUrl: post.url,
     },
   })
 
@@ -325,7 +324,7 @@ async function processBurn(op: Agt20Burn, post: MoltbookPost, agent: { id: strin
       fromAgentId: agent.id,
       amount,
       postId: post.id,
-      postUrl: post.url || `https://moltbook.com/post/${post.id}`,
+      postUrl: post.url,
     },
   })
 
@@ -339,45 +338,51 @@ async function processBurn(op: Agt20Burn, post: MoltbookPost, agent: { id: strin
 }
 
 // Process a single post
-export async function processPost(post: MoltbookPost) {
+export async function processPost(post: MoltbookPost): Promise<boolean> {
   // Check if already processed
   const existing = await prisma.operation.findUnique({
     where: { postId: post.id },
   })
   if (existing) {
-    return null
+    return false
   }
 
   const op = parseAgt20(post.content)
-  if (!op) return null
+  if (!op) return false
 
-  const agent = await getOrCreateAgent(post.author.name)
+  const agent = await getOrCreateAgent(post.authorName)
 
+  let result
   switch (op.op) {
     case 'deploy':
-      return processDeploy(op, post, agent)
+      result = await processDeploy(op, post, agent)
+      break
     case 'mint':
-      return processMint(op, post, agent)
+      result = await processMint(op, post, agent)
+      break
     case 'transfer':
-      return processTransfer(op, post, agent)
+      result = await processTransfer(op, post, agent)
+      break
     case 'burn':
-      return processBurn(op, post, agent)
+      result = await processBurn(op, post, agent)
+      break
     default:
-      return null
+      return false
   }
+
+  return result !== null
 }
 
 // Fetch posts from Moltbook API
-export async function fetchMoltbookPosts(afterId?: string): Promise<MoltbookPost[]> {
+async function fetchMoltbookPosts(offset = 0, limit = 100): Promise<{ posts: MoltbookPost[]; hasMore: boolean }> {
   const url = new URL('https://www.moltbook.com/api/v1/posts')
-  url.searchParams.set('limit', '100')
-  if (afterId) {
-    url.searchParams.set('after', afterId)
-  }
+  url.searchParams.set('limit', limit.toString())
+  url.searchParams.set('offset', offset.toString())
+  url.searchParams.set('sort', 'new')
 
   const response = await fetch(url.toString(), {
     headers: {
-      'Content-Type': 'application/json',
+      'Accept': 'application/json',
     },
   })
 
@@ -386,10 +391,46 @@ export async function fetchMoltbookPosts(afterId?: string): Promise<MoltbookPost
   }
 
   const data = await response.json()
-  return data.posts || []
+  
+  const posts: MoltbookPost[] = (data.posts || []).map((post: any) => ({
+    id: post.id,
+    content: post.content || '',
+    authorName: post.author?.name || 'Unknown',
+    authorId: post.author?.id || '',
+    createdAt: post.created_at,
+    url: `https://www.moltbook.com/p/${post.id}`,
+  }))
+
+  return {
+    posts,
+    hasMore: data.has_more || false,
+  }
 }
 
-// Main indexer function
+// Fetch all posts (for backfill)
+async function fetchAllPosts(maxPosts = 10000): Promise<MoltbookPost[]> {
+  const allPosts: MoltbookPost[] = []
+  let offset = 0
+  const limit = 100
+
+  while (allPosts.length < maxPosts) {
+    console.log(`Fetching posts offset=${offset}...`)
+    const { posts, hasMore } = await fetchMoltbookPosts(offset, limit)
+    
+    allPosts.push(...posts)
+    
+    if (!hasMore || posts.length === 0) break
+    
+    offset += limit
+    
+    // Rate limit: wait 500ms between requests
+    await new Promise(resolve => setTimeout(resolve, 500))
+  }
+
+  return allPosts
+}
+
+// Main indexer function - fetches recent posts and processes them
 export async function runIndexer() {
   console.log('Starting agt-20 indexer...')
 
@@ -405,36 +446,61 @@ export async function runIndexer() {
   }
 
   try {
-    const posts = await fetchMoltbookPosts(state.lastPostId || undefined)
+    // Fetch recent posts
+    const { posts } = await fetchMoltbookPosts(0, 100)
     console.log(`Fetched ${posts.length} posts`)
 
     // Process in chronological order (oldest first)
     const sortedPosts = posts.sort(
-      (a, b) => new Date(a.created_at).getTime() - new Date(b.created_at).getTime()
+      (a, b) => new Date(a.createdAt).getTime() - new Date(b.createdAt).getTime()
     )
 
     let processed = 0
     for (const post of sortedPosts) {
-      const result = await processPost(post)
-      if (result) processed++
+      const success = await processPost(post)
+      if (success) processed++
     }
 
-    // Update last indexed post
-    if (sortedPosts.length > 0) {
-      const lastPost = sortedPosts[sortedPosts.length - 1]
-      await prisma.indexerState.update({
-        where: { id: 'singleton' },
-        data: {
-          lastPostId: lastPost.id,
-          lastIndexed: new Date(),
-        },
-      })
-    }
+    // Update last indexed timestamp
+    await prisma.indexerState.update({
+      where: { id: 'singleton' },
+      data: {
+        lastPostId: sortedPosts.length > 0 ? sortedPosts[sortedPosts.length - 1].id : state.lastPostId,
+        lastIndexed: new Date(),
+      },
+    })
 
     console.log(`Processed ${processed} agt-20 operations`)
     return { fetched: posts.length, processed }
   } catch (error) {
     console.error('Indexer error:', error)
+    throw error
+  }
+}
+
+// Backfill function - fetches all historical posts
+export async function backfillIndexer() {
+  console.log('Starting agt-20 backfill...')
+
+  try {
+    const allPosts = await fetchAllPosts()
+    console.log(`Fetched ${allPosts.length} total posts`)
+
+    // Process in chronological order (oldest first)
+    const sortedPosts = allPosts.sort(
+      (a, b) => new Date(a.createdAt).getTime() - new Date(b.createdAt).getTime()
+    )
+
+    let processed = 0
+    for (const post of sortedPosts) {
+      const success = await processPost(post)
+      if (success) processed++
+    }
+
+    console.log(`Backfill complete: processed ${processed} agt-20 operations`)
+    return { fetched: allPosts.length, processed }
+  } catch (error) {
+    console.error('Backfill error:', error)
     throw error
   }
 }
