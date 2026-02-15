@@ -45,7 +45,9 @@ interface MoltbookPost {
 }
 
 // Parse agt-20 JSON from post content
-function parseAgt20(content: string): Agt20Operation | null {
+function parseAgt20(content: string | null | undefined): Agt20Operation | null {
+  if (!content) return null
+  
   // Look for JSON pattern in content
   const jsonMatch = content.match(/\{[^{}]*"p"\s*:\s*"agt-20"[^{}]*\}/i)
   if (!jsonMatch) return null
