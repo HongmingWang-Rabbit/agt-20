@@ -8,7 +8,7 @@ export default function DeployPage() {
   const [mintLimit, setMintLimit] = useState('1000')
   const [copied, setCopied] = useState(false)
 
-  const deployJson = `{"p":"agt-20","op":"deploy","tick":"${tick}","max":"${maxSupply}","lim":"${mintLimit}"} agt20.xyz`
+  const deployJson = `{"p":"agt-20","op":"deploy","tick":"${tick}","max":"${maxSupply}","lim":"${mintLimit}"} agt-20.vercel.app`
 
   const copyToClipboard = () => {
     navigator.clipboard.writeText(deployJson)

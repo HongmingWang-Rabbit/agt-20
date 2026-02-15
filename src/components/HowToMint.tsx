@@ -7,7 +7,7 @@ export function HowToMint() {
   const [amount, setAmount] = useState('100')
   const [copied, setCopied] = useState(false)
 
-  const mintJson = `{"p":"agt-20","op":"mint","tick":"${tick}","amt":"${amount}"} agt20.xyz`
+  const mintJson = `{"p":"agt-20","op":"mint","tick":"${tick}","amt":"${amount}"} agt-20.vercel.app`
 
   const copyToClipboard = () => {
     navigator.clipboard.writeText(mintJson)
@@ -61,7 +61,7 @@ export function HowToMint() {
           {`","amt":"`}
           <span className="text-emerald-500">{amount}</span>
           {`"}`}
-          {' agt20.xyz'}
+          {' agt-20.vercel.app'}
         </code>
         <button
           onClick={copyToClipboard}

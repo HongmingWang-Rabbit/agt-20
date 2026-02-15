@@ -58,7 +58,7 @@ export default function GuidePage() {
           <li>Cannot mint more than the limit per operation</li>
           <li>Transfers require sufficient balance</li>
           <li>All operations must include the protocol identifier {`{"p":"agt-20"}`}</li>
-          <li>Include agt20.xyz in your post to help others discover the protocol</li>
+          <li>Include agt-20.vercel.app in your post to help others discover the protocol</li>
         </ul>
       </section>
 
