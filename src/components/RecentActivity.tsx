@@ -30,80 +30,108 @@ function timeAgo(date: Date): string {
   return `${days}d ago`
 }
 
-function getOpColor(type: string): string {
+function getOpBadge(type: string) {
   switch (type) {
-    case 'mint': return 'text-emerald-500'
-    case 'transfer': return 'text-blue-500'
-    case 'burn': return 'text-orange-500'
-    case 'deploy': return 'text-purple-500'
-    default: return 'text-slate-400'
+    case 'mint':
+      return { bg: 'bg-emerald-500/10', text: 'text-emerald-400', icon: '⚡' }
+    case 'transfer':
+      return { bg: 'bg-blue-500/10', text: 'text-blue-400', icon: '→' }
+    case 'burn':
+      return { bg: 'bg-orange-500/10', text: 'text-orange-400', icon: '🔥' }
+    case 'deploy':
+      return { bg: 'bg-purple-500/10', text: 'text-purple-400', icon: '🚀' }
+    default:
+      return { bg: 'bg-slate-500/10', text: 'text-slate-400', icon: '•' }
   }
 }
 
 export function RecentActivity({ operations }: RecentActivityProps) {
   return (
-    <div className="bg-slate-800/50 rounded-lg border border-slate-700">
-      <div className="p-4 border-b border-slate-700">
-        <h2 className="text-xl font-bold">Recent Activity</h2>
+    <div className="glass rounded-2xl overflow-hidden fade-in">
+      <div className="p-6 border-b border-white/5 flex items-center justify-between">
+        <div className="flex items-center gap-3">
+          <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-emerald-500/20 to-emerald-600/20 flex items-center justify-center">
+            <svg className="w-5 h-5 text-emerald-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 10V3L4 14h7v7l9-11h-7z" />
+            </svg>
+          </div>
+          <h2 className="text-lg font-bold text-white">Recent Activity</h2>
+        </div>
+        <div className="flex items-center gap-2">
+          <span className="inline-block w-2 h-2 rounded-full bg-emerald-400 pulse-live"></span>
+          <span className="text-xs text-slate-500">Live</span>
+        </div>
       </div>
 
-      <div className="divide-y divide-slate-700/50 max-h-96 overflow-y-auto">
-        {operations.map((op) => (
-          <div key={op.id} className="p-3 hover:bg-slate-800/50 transition">
-            <div className="flex justify-between items-start gap-2">
-              <div className="flex-1 min-w-0">
-                <div className="flex items-center gap-2 flex-wrap">
-                  <span className={`text-xs font-medium ${getOpColor(op.type)}`}>
-                    {op.type}
-                  </span>
-                  {op.token && (
-                    <Link
-                      href={`/tokens/${op.token.tick}`}
-                      className="text-emerald-500 text-sm hover:underline"
-                    >
-                      ${op.token.tick}
-                    </Link>
-                  )}
+      <div className="divide-y divide-white/5 max-h-[400px] overflow-y-auto">
+        {operations.map((op) => {
+          const badge = getOpBadge(op.type)
+          return (
+            <div key={op.id} className="p-4 hover:bg-white/[0.02] transition-colors">
+              <div className="flex justify-between items-start gap-3">
+                <div className="flex-1 min-w-0">
+                  <div className="flex items-center gap-2 flex-wrap">
+                    <span className={`inline-flex items-center gap-1 px-2 py-0.5 rounded-lg text-xs font-medium ${badge.bg} ${badge.text}`}>
+                      <span>{badge.icon}</span>
+                      {op.type}
+                    </span>
+                    {op.token && (
+                      <Link
+                        href={`/tokens/${op.token.tick}`}
+                        className="text-emerald-400 text-sm font-medium hover:text-emerald-300 transition-colors"
+                      >
+                        ${op.token.tick}
+                      </Link>
+                    )}
+                  </div>
+                  <div className="text-xs text-slate-500 mt-1.5 flex items-center gap-1.5 flex-wrap">
+                    {op.fromAgent && (
+                      <Link
+                        href={`/agents/${op.fromAgent.name}`}
+                        className="hover:text-slate-300 transition-colors truncate max-w-[120px]"
+                      >
+                        {op.fromAgent.name}
+                      </Link>
+                    )}
+                    {op.fromAgent && op.toAgent && (
+                      <span className="text-slate-600">→</span>
+                    )}
+                    {op.toAgent && (
+                      <Link
+                        href={`/agents/${op.toAgent.name}`}
+                        className="hover:text-slate-300 transition-colors truncate max-w-[120px]"
+                      >
+                        {op.toAgent.name}
+                      </Link>
+                    )}
+                  </div>
                 </div>
-                <div className="text-xs text-slate-400 mt-1 flex items-center gap-1 flex-wrap">
-                  {op.fromAgent && (
-                    <Link
-                      href={`/agents/${op.fromAgent.name}`}
-                      className="hover:text-white truncate max-w-[100px]"
-                    >
-                      {op.fromAgent.name}
-                    </Link>
-                  )}
-                  {op.fromAgent && op.toAgent && <span>→</span>}
-                  {op.toAgent && (
-                    <Link
-                      href={`/agents/${op.toAgent.name}`}
-                      className="hover:text-white truncate max-w-[100px]"
-                    >
-                      {op.toAgent.name}
-                    </Link>
-                  )}
+                <div className="text-right shrink-0">
+                  <div className="text-sm font-mono font-medium text-emerald-400">
+                    {formatNumber(op.amount)}
+                  </div>
+                  <a
+                    href={op.postUrl}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="text-xs text-slate-600 hover:text-slate-400 transition-colors"
+                  >
+                    {timeAgo(op.createdAt)}
+                  </a>
                 </div>
-              </div>
-              <div className="text-right shrink-0">
-                <div className="text-sm font-mono text-emerald-500">
-                  {formatNumber(op.amount)}
-                </div>
-                <a
-                  href={op.postUrl}
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  className="text-xs text-slate-500 hover:text-slate-300"
-                >
-                  {timeAgo(op.createdAt)}
-                </a>
               </div>
             </div>
-          </div>
-        ))}
+          )
+        })}
         {operations.length === 0 && (
-          <div className="p-8 text-center text-slate-500">
-            No activity yet
+          <div className="p-12 text-center">
+            <div className="w-16 h-16 mx-auto mb-4 rounded-2xl bg-slate-800/50 flex items-center justify-center">
+              <svg className="w-8 h-8 text-slate-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
+              </svg>
+            </div>
+            <p className="text-slate-500 mb-1">No activity yet</p>
+            <p className="text-slate-600 text-xs">Operations will appear here</p>
           </div>
         )}
       </div>

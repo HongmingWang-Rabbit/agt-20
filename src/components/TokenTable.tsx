@@ -21,58 +21,81 @@ function getProgress(supply: bigint, maxSupply: bigint): number {
 
 export function TokenTable({ tokens, currentPage, totalPages }: TokenTableProps) {
   return (
-    <div className="bg-slate-800/50 rounded-lg border border-slate-700 overflow-hidden">
-      <div className="p-4 border-b border-slate-700 flex justify-between items-center">
+    <div className="glass rounded-2xl overflow-hidden fade-in">
+      <div className="p-6 border-b border-white/5 flex justify-between items-center">
         <div>
-          <h2 className="text-xl font-bold">Tokens</h2>
-          <span className="text-slate-400 text-sm">{tokens.length} deployed</span>
+          <h2 className="text-xl font-bold bg-gradient-to-r from-white to-slate-400 bg-clip-text text-transparent">
+            Tokens
+          </h2>
+          <span className="text-slate-500 text-sm">{tokens.length} deployed</span>
+        </div>
+        <div className="flex items-center gap-2">
+          <span className="inline-block w-2 h-2 rounded-full bg-emerald-400 pulse-live"></span>
+          <span className="text-xs text-slate-500">Live</span>
         </div>
       </div>
 
       <div className="overflow-x-auto">
         <table className="w-full">
-          <thead className="bg-slate-900/50">
-            <tr className="text-slate-400 text-sm">
-              <th className="text-left p-4">Tick</th>
-              <th className="text-left p-4">Progress</th>
-              <th className="text-right p-4">Supply</th>
-              <th className="text-right p-4">Max</th>
-              <th className="text-right p-4">Holders</th>
-              <th className="text-right p-4">Ops</th>
+          <thead>
+            <tr className="text-slate-500 text-xs uppercase tracking-wider border-b border-white/5">
+              <th className="text-left p-4 font-medium">Tick</th>
+              <th className="text-left p-4 font-medium">Progress</th>
+              <th className="text-right p-4 font-medium">Supply</th>
+              <th className="text-right p-4 font-medium">Max</th>
+              <th className="text-right p-4 font-medium">Holders</th>
+              <th className="text-right p-4 font-medium">Ops</th>
             </tr>
           </thead>
           <tbody>
             {tokens.map((token) => {
               const progress = getProgress(token.supply, token.maxSupply)
               return (
-                <tr key={token.id} className="border-t border-slate-700/50 hover:bg-slate-800/50 transition">
+                <tr key={token.id} className="table-row-hover border-b border-white/5 last:border-0">
                   <td className="p-4">
-                    <Link href={`/tokens/${token.tick}`} className="text-emerald-500 font-medium hover:underline">
-                      ${token.tick}
+                    <Link href={`/tokens/${token.tick}`} className="flex items-center gap-2 group">
+                      <div className="w-8 h-8 rounded-lg bg-gradient-to-br from-emerald-500/20 to-emerald-600/20 flex items-center justify-center border border-emerald-500/20">
+                        <span className="text-emerald-400 text-xs font-bold">{token.tick.charAt(0)}</span>
+                      </div>
+                      <span className="text-emerald-400 font-semibold group-hover:text-emerald-300 transition-colors">
+                        ${token.tick}
+                      </span>
                     </Link>
                   </td>
                   <td className="p-4">
-                    <div className="flex items-center gap-2">
-                      <div className="w-20 bg-slate-700 rounded-full h-2">
+                    <div className="flex items-center gap-3">
+                      <div className="w-24 bg-slate-800 rounded-full h-2 overflow-hidden">
                         <div
-                          className="bg-emerald-500 h-2 rounded-full"
+                          className="bg-gradient-to-r from-emerald-500 to-emerald-400 h-2 rounded-full progress-bar"
                           style={{ width: `${progress}%` }}
                         />
                       </div>
-                      <span className="text-sm text-slate-400">{progress}%</span>
+                      <span className="text-sm text-slate-400 font-medium">{progress}%</span>
                     </div>
                   </td>
-                  <td className="p-4 text-right font-mono">{formatNumber(token.supply)}</td>
-                  <td className="p-4 text-right font-mono text-slate-400">{formatNumber(token.maxSupply)}</td>
-                  <td className="p-4 text-right">{formatNumber(token.holders)}</td>
-                  <td className="p-4 text-right">{formatNumber(token.operations)}</td>
+                  <td className="p-4 text-right font-mono text-slate-300">{formatNumber(token.supply)}</td>
+                  <td className="p-4 text-right font-mono text-slate-500">{formatNumber(token.maxSupply)}</td>
+                  <td className="p-4 text-right text-slate-300">{formatNumber(token.holders)}</td>
+                  <td className="p-4 text-right">
+                    <span className="inline-flex items-center px-2 py-1 rounded-lg bg-emerald-500/10 text-emerald-400 text-sm font-medium">
+                      {formatNumber(token.operations)}
+                    </span>
+                  </td>
                 </tr>
               )
             })}
             {tokens.length === 0 && (
               <tr>
-                <td colSpan={6} className="p-8 text-center text-slate-500">
-                  No tokens deployed yet. Be the first!
+                <td colSpan={6} className="p-12 text-center">
+                  <div className="w-16 h-16 mx-auto mb-4 rounded-2xl bg-slate-800/50 flex items-center justify-center">
+                    <svg className="w-8 h-8 text-slate-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M20 7l-8-4-8 4m16 0l-8 4m8-4v10l-8 4m0-10L4 7m8 4v10M4 7v10l8 4" />
+                    </svg>
+                  </div>
+                  <p className="text-slate-500 mb-2">No tokens deployed yet</p>
+                  <Link href="/deploy" className="text-emerald-400 hover:text-emerald-300 text-sm font-medium">
+                    Be the first to deploy →
+                  </Link>
                 </td>
               </tr>
             )}
@@ -81,19 +104,19 @@ export function TokenTable({ tokens, currentPage, totalPages }: TokenTableProps)
       </div>
 
       {totalPages > 1 && (
-        <div className="p-4 border-t border-slate-700 flex justify-between items-center">
-          <span className="text-slate-400 text-sm">
+        <div className="p-4 border-t border-white/5 flex justify-between items-center">
+          <span className="text-slate-500 text-sm">
             Page {currentPage} of {totalPages}
           </span>
-          <div className="flex gap-2">
+          <div className="flex gap-1">
             {Array.from({ length: Math.min(5, totalPages) }, (_, i) => i + 1).map((p) => (
               <Link
                 key={p}
                 href={`/?page=${p}`}
-                className={`px-3 py-1 rounded ${
+                className={`w-8 h-8 rounded-lg flex items-center justify-center text-sm font-medium transition-all ${
                   p === currentPage
-                    ? 'bg-emerald-600 text-white'
-                    : 'bg-slate-700 text-slate-300 hover:bg-slate-600'
+                    ? 'bg-emerald-500 text-white shadow-lg shadow-emerald-500/20'
+                    : 'bg-slate-800 text-slate-400 hover:bg-slate-700'
                 }`}
               >
                 {p}
