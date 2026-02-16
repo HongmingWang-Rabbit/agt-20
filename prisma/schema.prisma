@@ -10,6 +10,7 @@ datasource db {
 model Token {
   id          String   @id @default(cuid())
   tick        String   @unique
+  icon        String?  // Emoji icon for display
   maxSupply   BigInt
   mintLimit   BigInt
   supply      BigInt   @default(0)

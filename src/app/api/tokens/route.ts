@@ -15,6 +15,7 @@ export async function GET() {
     const serialized = tokens.map(token => ({
       id: token.id,
       tick: token.tick,
+      icon: token.icon,
       maxSupply: token.maxSupply.toString(),
       mintLimit: token.mintLimit.toString(),
       supply: token.supply.toString(),
