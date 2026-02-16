@@ -1,6 +1,7 @@
 import Link from 'next/link'
 import { notFound } from 'next/navigation'
 import { prisma } from '@/lib/prisma'
+import { MintButton } from '@/components/MintButton'
 
 export const dynamic = 'force-dynamic'
 
@@ -70,6 +71,9 @@ export default async function TokenPage({
           <div className="text-2xl font-bold">{formatNumber(token.holders)} / {formatNumber(token.operations)}</div>
         </div>
       </div>
+
+      {/* On-chain Minting */}
+      <MintButton tick={token.tick} mintLimit={token.mintLimit} />
 
       <div className="grid lg:grid-cols-2 gap-8">
         <div className="bg-slate-800/50 rounded-lg border border-slate-700">
