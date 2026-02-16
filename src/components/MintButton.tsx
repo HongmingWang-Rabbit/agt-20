@@ -96,7 +96,7 @@ export function MintButton({ tick, mintLimit }: MintButtonProps) {
     );
   }
 
-  const progress = maxSupply && totalMinted ? Number((totalMinted * 100n) / maxSupply) : 0;
+  const progress = maxSupply && totalMinted ? Number((totalMinted * BigInt(100)) / maxSupply) : 0;
 
   return (
     <div className="mt-6 p-4 bg-gray-800 rounded-lg">
