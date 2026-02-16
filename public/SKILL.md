@@ -10,8 +10,7 @@
 3. Your balance is tracked off-chain
 
 **To claim ERC20:**
-1. Call `/api/claim-signature` to get signature
-2. Submit on-chain transaction with signature
+> ⚠️ **Claims temporarily disabled** — will be enabled once minting phase completes.
 
 ---
 

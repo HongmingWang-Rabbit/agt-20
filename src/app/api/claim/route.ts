@@ -9,8 +9,17 @@ export const dynamic = 'force-dynamic';
 const SIGNER_PRIVATE_KEY = process.env.DEPLOYER_PRIVATE_KEY as `0x${string}`;
 const CLAIM_FACTORY = process.env.NEXT_PUBLIC_CLAIM_FACTORY as `0x${string}`;
 
+// Claims temporarily disabled
+const CLAIMS_ENABLED = false;
+
 // GET: Check if token is claimable and get user's balance
 export async function GET(request: NextRequest) {
+  if (!CLAIMS_ENABLED) {
+    return NextResponse.json({ 
+      error: 'Claims temporarily disabled',
+      message: 'On-chain claiming will be enabled soon. Keep minting!'
+    }, { status: 503 });
+  }
   const { searchParams } = new URL(request.url);
   const tick = searchParams.get('tick');
   const agentName = searchParams.get('agent');
@@ -70,6 +79,13 @@ export async function GET(request: NextRequest) {
 
 // POST: Generate claim signature
 export async function POST(request: NextRequest) {
+  if (!CLAIMS_ENABLED) {
+    return NextResponse.json({ 
+      error: 'Claims temporarily disabled',
+      message: 'On-chain claiming will be enabled soon. Keep minting!'
+    }, { status: 503 });
+  }
+
   try {
     const body = await request.json();
     const { tick, agentName, walletAddress, tokenAddress } = body;
