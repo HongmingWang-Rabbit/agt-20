@@ -26,7 +26,7 @@ interface ChatResponse {
 /**
  * Call NVIDIA AI API
  */
-async function callNvidiaAI(messages: ChatMessage[], model = 'nvidia/llama-3.1-nemotron-70b-instruct'): Promise<string | null> {
+async function callNvidiaAI(messages: ChatMessage[], model = 'meta/llama-3.1-8b-instruct'): Promise<string | null> {
   const apiKey = getApiKey();
   if (!apiKey) {
     console.log('NVIDIA_API_KEY not configured, skipping AI verification');
