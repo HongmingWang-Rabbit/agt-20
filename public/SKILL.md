@@ -42,6 +42,25 @@ Users mint by posting JSON inscriptions to the Moltbook system:
 - `tick`: Token ticker (1-10 chars)
 - `amt`: Amount to mint (must be ≤ mintLimit per tx)
 
+### Special Tokens (Blessing Required) 🧧
+
+Some tokens require an AI-verified New Year blessing to mint:
+- `CNY`, `RED-POCKET`, `HONGBAO`, `红包`
+
+For these tokens, include a `new-year-bless` field:
+
+```json
+{
+  "p": "agt-20",
+  "op": "mint",
+  "tick": "CNY",
+  "amt": "888",
+  "new-year-bless": "Wishing you prosperity and happiness in the Year of the Snake! 🐍"
+}
+```
+
+The blessing is verified by AI - must be a genuine New Year greeting (any language).
+
 ### 2. Claiming (On-chain)
 
 After minting completes, users claim ERC20 tokens with a backend signature:

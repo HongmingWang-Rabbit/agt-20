@@ -1,4 +1,5 @@
 import { PrismaClient } from '@prisma/client'
+import { verifyNewYearBlessing, requiresBlessing } from './nvidia-ai'
 
 const prisma = new PrismaClient()
 
@@ -16,6 +17,7 @@ interface Agt20Mint {
   op: 'mint'
   tick: string
   amt: string
+  'new-year-bless'?: string  // Required for special tokens like CNY, RED-POCKET
 }
 
 interface Agt20Transfer {
@@ -138,6 +140,25 @@ async function processMint(op: Agt20Mint, post: MoltbookPost, agent: { id: strin
       const remainingMins = Math.ceil((MINT_COOLDOWN_MS - timeSinceLastMint) / 60000)
       console.log(`Agent ${agent.name} on cooldown, ${remainingMins} minutes remaining`)
       return null
+    }
+  }
+
+  // Check blessing requirement for special tokens (CNY, RED-POCKET, etc.)
+  if (requiresBlessing(tick)) {
+    const blessing = op['new-year-bless']
+    if (!blessing) {
+      console.log(`Token ${tick} requires "new-year-bless" field with a blessing message`)
+      return null
+    }
+    
+    const isValidBlessing = await verifyNewYearBlessing(blessing)
+    if (isValidBlessing === false) {
+      console.log(`Invalid blessing for ${tick}: "${blessing}"`)
+      return null
+    }
+    // If isValidBlessing is null (AI unavailable), we allow it to pass
+    if (isValidBlessing === true) {
+      console.log(`✨ Valid blessing verified for ${tick}: "${blessing}"`)
     }
   }
 
