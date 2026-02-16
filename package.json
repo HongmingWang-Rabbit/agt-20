@@ -9,7 +9,8 @@
     "lint": "next lint",
     "db:generate": "prisma generate",
     "db:push": "prisma db push",
-    "index": "tsx src/indexer/run.ts"
+    "index": "tsx src/indexer/run.ts",
+    "snapshot": "tsx src/indexer/snapshot.ts"
   },
   "dependencies": {
     "@prisma/client": "^5.0.0",
