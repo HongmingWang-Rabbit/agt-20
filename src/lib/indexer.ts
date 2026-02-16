@@ -3,6 +3,9 @@ import { verifyNewYearBlessing, requiresBlessing } from './nvidia-ai'
 
 const prisma = new PrismaClient()
 
+// Blocked tickers (test tokens, etc.) - won't be indexed
+const BLOCKED_TICKERS = ['TEST3741', 'TEST3806', 'CLAWD', 'CNY', 'AGNT']
+
 // agt-20 operation types
 interface Agt20Deploy {
   p: 'agt-20'
@@ -77,6 +80,12 @@ async function getOrCreateAgent(name: string) {
 async function processDeploy(op: Agt20Deploy, post: MoltbookPost, agent: { id: string; name: string }) {
   const tick = op.tick.toUpperCase()
   
+  // Check blocklist
+  if (BLOCKED_TICKERS.includes(tick)) {
+    console.log(`Token ${tick} is blocked, skipping deploy`)
+    return null
+  }
+  
   // Check if token already exists
   const existing = await prisma.token.findUnique({ where: { tick } })
   if (existing) {
@@ -124,6 +133,13 @@ const MINT_COOLDOWN_MS = 2 * 60 * 60 * 1000  // 2 hours
 // Process mint operation
 async function processMint(op: Agt20Mint, post: MoltbookPost, agent: { id: string; name: string }) {
   const tick = op.tick.toUpperCase()
+  
+  // Check blocklist
+  if (BLOCKED_TICKERS.includes(tick)) {
+    console.log(`Token ${tick} is blocked, skipping mint`)
+    return null
+  }
+  
   const amount = BigInt(op.amt)
 
   const token = await prisma.token.findUnique({ where: { tick } })
