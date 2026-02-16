@@ -17,7 +17,7 @@ interface Agt20Mint {
   op: 'mint'
   tick: string
   amt: string
-  'new-year-bless'?: string  // Required for special tokens like CNY, RED-POCKET
+  'new-year-bless'?: string  // Required for REDX token
 }
 
 interface Agt20Transfer {
@@ -143,7 +143,7 @@ async function processMint(op: Agt20Mint, post: MoltbookPost, agent: { id: strin
     }
   }
 
-  // Check blessing requirement for special tokens (CNY, RED-POCKET, etc.)
+  // Check blessing requirement for REDX token
   if (requiresBlessing(tick)) {
     const blessing = op['new-year-bless']
     if (!blessing) {

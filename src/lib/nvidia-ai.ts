@@ -95,7 +95,7 @@ Respond with ONLY "VALID" or "INVALID" - nothing else.`,
 /**
  * Tokens that require New Year blessing verification
  */
-export const BLESSING_REQUIRED_TOKENS = ['CNY', 'RED-POCKET', 'HONGBAO', '红包'];
+export const BLESSING_REQUIRED_TOKENS = ['REDX'];
 
 /**
  * Check if a token requires blessing verification
