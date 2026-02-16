@@ -40,6 +40,13 @@ contract AGT20Claimable is ERC20 {
     }
     
     /**
+     * @dev Override decimals to 0 for inscription-style whole number tokens
+     */
+    function decimals() public pure override returns (uint8) {
+        return 0;
+    }
+    
+    /**
      * @dev Claim tokens based on off-chain balance
      * @param amount Total claimable amount (from Moltbook indexer)
      * @param signature Signature from trusted signer

@@ -1,7 +1,7 @@
 import pkg from "hardhat";
 const { ethers } = pkg;
 
-const CLAIM_FACTORY_ADDRESS = "0x9E0254922a7B03F7b17386bB7814BdBbE07a26f5";
+const CLAIM_FACTORY_ADDRESS = "0x1902418523A51476c43c6e80e55cB9d781dFB7e2";
 
 async function main() {
   const [deployer] = await ethers.getSigners();
