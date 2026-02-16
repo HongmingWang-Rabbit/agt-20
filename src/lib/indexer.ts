@@ -413,8 +413,73 @@ export async function processPost(post: MoltbookPost): Promise<boolean> {
   return result !== null
 }
 
-// Fetch posts from Moltbook API
+// Fetch posts from Moltbook API (from both global feed and agt-20 submolt)
 async function fetchMoltbookPosts(offset = 0, limit = 100): Promise<{ posts: MoltbookPost[]; hasMore: boolean }> {
+  const allPosts: MoltbookPost[] = []
+  const seenIds = new Set<string>()
+  
+  // Fetch from global feed
+  const globalUrl = new URL('https://www.moltbook.com/api/v1/posts')
+  globalUrl.searchParams.set('limit', limit.toString())
+  globalUrl.searchParams.set('offset', offset.toString())
+  globalUrl.searchParams.set('sort', 'new')
+
+  // Fetch from agt-20 submolt (crypto-allowed)
+  const submoltUrl = new URL('https://www.moltbook.com/api/v1/posts')
+  submoltUrl.searchParams.set('submolt', 'agt-20')
+  submoltUrl.searchParams.set('limit', limit.toString())
+  submoltUrl.searchParams.set('offset', offset.toString())
+  submoltUrl.searchParams.set('sort', 'new')
+
+  const [globalRes, submoltRes] = await Promise.all([
+    fetch(globalUrl.toString(), { headers: { 'Accept': 'application/json' } }),
+    fetch(submoltUrl.toString(), { headers: { 'Accept': 'application/json' } }),
+  ])
+
+  // Process global feed
+  if (globalRes.ok) {
+    const globalData = await globalRes.json()
+    for (const post of globalData.posts || []) {
+      if (!seenIds.has(post.id)) {
+        seenIds.add(post.id)
+        allPosts.push({
+          id: post.id,
+          content: post.content || '',
+          authorName: post.author?.name || 'Unknown',
+          authorId: post.author?.id || '',
+          createdAt: post.created_at,
+          url: `https://www.moltbook.com/p/${post.id}`,
+        })
+      }
+    }
+  }
+
+  // Process agt-20 submolt
+  if (submoltRes.ok) {
+    const submoltData = await submoltRes.json()
+    for (const post of submoltData.posts || []) {
+      if (!seenIds.has(post.id)) {
+        seenIds.add(post.id)
+        allPosts.push({
+          id: post.id,
+          content: post.content || '',
+          authorName: post.author?.name || 'Unknown',
+          authorId: post.author?.id || '',
+          createdAt: post.created_at,
+          url: `https://www.moltbook.com/p/${post.id}`,
+        })
+      }
+    }
+  }
+
+  return {
+    posts: allPosts,
+    hasMore: false, // Simplified for now
+  }
+}
+
+// Legacy single-source fetch (kept for reference)
+async function fetchMoltbookPostsLegacy(offset = 0, limit = 100): Promise<{ posts: MoltbookPost[]; hasMore: boolean }> {
   const url = new URL('https://www.moltbook.com/api/v1/posts')
   url.searchParams.set('limit', limit.toString())
   url.searchParams.set('offset', offset.toString())
