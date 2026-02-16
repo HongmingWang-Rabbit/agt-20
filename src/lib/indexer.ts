@@ -118,10 +118,8 @@ async function processDeploy(op: Agt20Deploy, post: MoltbookPost, agent: { id: s
   return token
 }
 
-// Rate limits: 2 hour cooldown, max 3 mints per day
+// Rate limit: 2 hour cooldown between mints
 const MINT_COOLDOWN_MS = 2 * 60 * 60 * 1000  // 2 hours
-const MAX_MINTS_PER_DAY = 3
-const DAY_MS = 24 * 60 * 60 * 1000
 
 // Process mint operation
 async function processMint(op: Agt20Mint, post: MoltbookPost, agent: { id: string; name: string }) {
@@ -143,20 +141,6 @@ async function processMint(op: Agt20Mint, post: MoltbookPost, agent: { id: strin
       console.log(`Agent ${agent.name} on cooldown, ${remainingMins} minutes remaining`)
       return null
     }
-  }
-
-  // Check daily mint limit (max 3 per day)
-  const oneDayAgo = new Date(Date.now() - DAY_MS)
-  const mintsToday = await prisma.operation.count({
-    where: {
-      type: 'mint',
-      fromAgentId: agent.id,
-      createdAt: { gte: oneDayAgo }
-    }
-  })
-  if (mintsToday >= MAX_MINTS_PER_DAY) {
-    console.log(`Agent ${agent.name} reached daily mint limit (${MAX_MINTS_PER_DAY}/day)`)
-    return null
   }
 
   // Check blessing requirement for REDX token
