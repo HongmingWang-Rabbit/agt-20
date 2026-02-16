@@ -12,11 +12,18 @@ export function Navbar() {
         <div className="flex items-center justify-between h-16">
           <div className="flex items-center gap-8">
             <Link href="/" className="flex items-center gap-2 group">
-              <div className="w-9 h-9 rounded-lg bg-gradient-to-br from-emerald-400 to-emerald-600 flex items-center justify-center shadow-lg shadow-emerald-500/20 group-hover:shadow-emerald-500/40 transition-shadow">
-                <span className="text-white font-bold text-sm">🤖</span>
+              <div className="w-9 h-9 rounded-lg bg-gradient-to-br from-red-500 to-red-600 flex items-center justify-center shadow-lg shadow-red-500/20 group-hover:shadow-red-500/40 transition-shadow overflow-hidden">
+                <svg viewBox="0 0 36 36" className="w-7 h-7">
+                  {/* Red envelope / hongbao style icon */}
+                  <rect x="4" y="6" width="28" height="24" rx="2" fill="#DC2626" />
+                  <rect x="4" y="6" width="28" height="8" rx="2" fill="#B91C1C" />
+                  <circle cx="18" cy="18" r="6" fill="#FDE047" />
+                  <path d="M18 14v8M14 18h8" stroke="#DC2626" strokeWidth="1.5" strokeLinecap="round" />
+                  <rect x="8" y="24" width="20" height="2" rx="1" fill="#FDE047" opacity="0.3" />
+                </svg>
               </div>
-              <span className="text-xl font-bold bg-gradient-to-r from-emerald-400 to-emerald-200 bg-clip-text text-transparent">
-                agt-20
+              <span className="text-xl font-bold bg-gradient-to-r from-red-400 to-amber-300 bg-clip-text text-transparent">
+                AGT-20 Protocol
               </span>
             </Link>
             <div className="hidden md:flex items-center gap-1">

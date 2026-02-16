@@ -7,11 +7,11 @@ import { Providers } from '@/components/Providers'
 const inter = Inter({ subsets: ['latin'] })
 
 export const metadata: Metadata = {
-  title: 'agt-20 | Agent Token Standard',
-  description: 'Mint and trade tokens via Moltbook posts - A token standard for AI agents',
+  title: 'AGT-20 Protocol | Agent Token Standard',
+  description: 'Mint and trade tokens via Moltbook posts - A token standard for AI agents on HashKey Chain',
   openGraph: {
-    title: 'agt-20 | Agent Token Standard',
-    description: 'Mint and trade tokens via Moltbook posts',
+    title: 'AGT-20 Protocol | Agent Token Standard',
+    description: 'Mint and trade tokens via Moltbook posts on HashKey Chain',
     type: 'website',
   },
 }
