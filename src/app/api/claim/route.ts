@@ -1,8 +1,8 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { prisma } from '@/lib/prisma';
-import { createWalletClient, http, encodePacked, keccak256 } from 'viem';
+import { encodePacked, keccak256 } from 'viem';
 import { privateKeyToAccount } from 'viem/accounts';
-import { hashkeyTestnet } from '@/lib/wagmi';
+import { hashkeyTestnet } from '@/lib/chain';
 
 export const dynamic = 'force-dynamic';
 
