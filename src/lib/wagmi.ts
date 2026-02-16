@@ -33,7 +33,7 @@ export const config = getDefaultConfig({
 // Contract addresses
 export const CONTRACTS = {
   factory: '0x149CFa35438D5Aa6d544fa03ceDFA7A763b54683' as const,
-  claimFactory: '0x15A169FB7Eb88a05B14Ac75f41fbB6C3A3e4f616' as const,
+  claimFactory: '0x517f45EB9ba65EC6F5725E73145639D5b907937B' as const,
 };
 
 // ABIs

@@ -16,6 +16,7 @@ contract AGT20Claimable is ERC20 {
     using MessageHashUtils for bytes32;
 
     address public immutable signer;
+    address public immutable factory;
     uint256 public immutable maxSupply;
     uint256 public totalClaimed;
     
@@ -27,45 +28,64 @@ contract AGT20Claimable is ERC20 {
         string memory name_,
         string memory symbol_,
         uint256 maxSupply_,
-        address signer_
+        address signer_,
+        address factory_
     ) ERC20(name_, symbol_) {
         require(maxSupply_ > 0, "Max supply must be > 0");
         require(signer_ != address(0), "Invalid signer");
         
         maxSupply = maxSupply_;
         signer = signer_;
+        factory = factory_;
     }
     
     /**
      * @dev Claim tokens based on off-chain balance
      * @param amount Total claimable amount (from Moltbook indexer)
      * @param signature Signature from trusted signer
+     * @param useFactoryAddress If true, verify signature against factory address (for first claim via factory)
      */
-    function claim(uint256 amount, bytes calldata signature) external {
+    function claim(uint256 amount, bytes calldata signature, bool useFactoryAddress) external {
+        _claim(msg.sender, amount, signature, useFactoryAddress);
+    }
+    
+    /**
+     * @dev Claim on behalf of user (only callable by factory for deployAndClaim)
+     */
+    function claimFor(address user, uint256 amount, bytes calldata signature) external {
+        require(msg.sender == factory, "Only factory");
+        _claim(user, amount, signature, true);
+    }
+    
+    /**
+     * @dev Internal claim logic
+     */
+    function _claim(address user, uint256 amount, bytes calldata signature, bool useFactoryAddress) internal {
         require(amount > 0, "Amount must be > 0");
-        require(claimed[msg.sender] < amount, "Already claimed full amount");
+        require(claimed[user] < amount, "Already claimed full amount");
         
         // Verify signature
+        address signatureTarget = useFactoryAddress ? factory : address(this);
         bytes32 messageHash = keccak256(abi.encodePacked(
-            msg.sender,
+            user,
             amount,
             block.chainid,
-            address(this)
+            signatureTarget
         ));
         bytes32 ethSignedHash = messageHash.toEthSignedMessageHash();
         address recovered = ethSignedHash.recover(signature);
         require(recovered == signer, "Invalid signature");
         
         // Calculate claimable amount
-        uint256 claimable = amount - claimed[msg.sender];
+        uint256 claimable = amount - claimed[user];
         require(totalClaimed + claimable <= maxSupply, "Exceeds max supply");
         
         // Update state and mint
-        claimed[msg.sender] = amount;
+        claimed[user] = amount;
         totalClaimed += claimable;
-        _mint(msg.sender, claimable);
+        _mint(user, claimable);
         
-        emit Claimed(msg.sender, claimable);
+        emit Claimed(user, claimable);
     }
     
     /**
@@ -130,7 +150,8 @@ contract AGT20ClaimFactory {
             name,
             tick,
             maxSupply,
-            signer
+            signer,
+            address(this)
         );
         
         address tokenAddr = address(token);
@@ -146,8 +167,8 @@ contract AGT20ClaimFactory {
         
         emit TokenDeployed(tokenAddr, tick, maxSupply, msg.sender);
         
-        // First claimer also claims their tokens
-        token.claim(claimAmount, signature);
+        // First claimer also claims their tokens (factory calls claimFor)
+        token.claimFor(msg.sender, claimAmount, signature);
         
         return tokenAddr;
     }
