@@ -1,7 +1,7 @@
 import Link from 'next/link'
 import { notFound } from 'next/navigation'
 import { prisma } from '@/lib/prisma'
-import { MintButton } from '@/components/MintButton'
+import { ClaimButton } from '@/components/ClaimButton'
 
 export const dynamic = 'force-dynamic'
 
@@ -72,8 +72,8 @@ export default async function TokenPage({
         </div>
       </div>
 
-      {/* On-chain Minting */}
-      <MintButton tick={token.tick} mintLimit={token.mintLimit} />
+      {/* On-chain Claim */}
+      <ClaimButton tick={token.tick} maxSupply={token.maxSupply} currentSupply={token.supply} />
 
       <div className="grid lg:grid-cols-2 gap-8">
         <div className="bg-slate-800/50 rounded-lg border border-slate-700">

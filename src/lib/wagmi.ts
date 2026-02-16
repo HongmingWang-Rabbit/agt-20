@@ -33,6 +33,7 @@ export const config = getDefaultConfig({
 // Contract addresses
 export const CONTRACTS = {
   factory: '0x149CFa35438D5Aa6d544fa03ceDFA7A763b54683' as const,
+  claimFactory: '0x15A169FB7Eb88a05B14Ac75f41fbB6C3A3e4f616' as const,
 };
 
 // ABIs
@@ -132,6 +133,55 @@ export const AGT20TokenABI = [
     inputs: [],
     name: 'name',
     outputs: [{ name: '', type: 'string' }],
+    stateMutability: 'view',
+    type: 'function',
+  },
+] as const;
+
+export const AGT20ClaimFactoryABI = [
+  {
+    inputs: [
+      { name: 'tick', type: 'string' },
+      { name: 'maxSupply', type: 'uint256' },
+      { name: 'claimAmount', type: 'uint256' },
+      { name: 'signature', type: 'bytes' },
+    ],
+    name: 'deployAndClaim',
+    outputs: [{ name: '', type: 'address' }],
+    stateMutability: 'nonpayable',
+    type: 'function',
+  },
+  {
+    inputs: [{ name: 'tick', type: 'string' }],
+    name: 'getToken',
+    outputs: [{ name: '', type: 'address' }],
+    stateMutability: 'view',
+    type: 'function',
+  },
+] as const;
+
+export const AGT20ClaimableABI = [
+  {
+    inputs: [
+      { name: 'amount', type: 'uint256' },
+      { name: 'signature', type: 'bytes' },
+    ],
+    name: 'claim',
+    outputs: [],
+    stateMutability: 'nonpayable',
+    type: 'function',
+  },
+  {
+    inputs: [{ name: 'user', type: 'address' }],
+    name: 'claimed',
+    outputs: [{ name: '', type: 'uint256' }],
+    stateMutability: 'view',
+    type: 'function',
+  },
+  {
+    inputs: [{ name: 'account', type: 'address' }],
+    name: 'balanceOf',
+    outputs: [{ name: '', type: 'uint256' }],
     stateMutability: 'view',
     type: 'function',
   },
