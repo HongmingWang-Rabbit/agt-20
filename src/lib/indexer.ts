@@ -118,8 +118,8 @@ async function processDeploy(op: Agt20Deploy, post: MoltbookPost, agent: { id: s
   return token
 }
 
-// Cooldown duration: 2 hours in milliseconds
-const MINT_COOLDOWN_MS = 2 * 60 * 60 * 1000
+// Cooldown duration: 24 hours (once per day)
+const MINT_COOLDOWN_MS = 24 * 60 * 60 * 1000
 
 // Process mint operation
 async function processMint(op: Agt20Mint, post: MoltbookPost, agent: { id: string; name: string }) {
