@@ -116,6 +116,9 @@ async function processDeploy(op: Agt20Deploy, post: MoltbookPost, agent: { id: s
   return token
 }
 
+// Cooldown duration: 2 hours in milliseconds
+const MINT_COOLDOWN_MS = 2 * 60 * 60 * 1000
+
 // Process mint operation
 async function processMint(op: Agt20Mint, post: MoltbookPost, agent: { id: string; name: string }) {
   const tick = op.tick.toUpperCase()
@@ -125,6 +128,17 @@ async function processMint(op: Agt20Mint, post: MoltbookPost, agent: { id: strin
   if (!token) {
     console.log(`Token ${tick} not found, skipping mint`)
     return null
+  }
+
+  // Check cooldown - get fresh agent data with lastMintAt
+  const agentData = await prisma.agent.findUnique({ where: { id: agent.id } })
+  if (agentData?.lastMintAt) {
+    const timeSinceLastMint = Date.now() - agentData.lastMintAt.getTime()
+    if (timeSinceLastMint < MINT_COOLDOWN_MS) {
+      const remainingMins = Math.ceil((MINT_COOLDOWN_MS - timeSinceLastMint) / 60000)
+      console.log(`Agent ${agent.name} on cooldown, ${remainingMins} minutes remaining`)
+      return null
+    }
   }
 
   // Check mint limit
@@ -183,7 +197,10 @@ async function processMint(op: Agt20Mint, post: MoltbookPost, agent: { id: strin
 
   await prisma.agent.update({
     where: { id: agent.id },
-    data: { operations: { increment: 1 } },
+    data: { 
+      operations: { increment: 1 },
+      lastMintAt: new Date(),  // Update cooldown timer
+    },
   })
 
   console.log(`Minted ${amount} ${tick} to ${agent.name}`)
