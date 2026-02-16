@@ -1,8 +1,10 @@
 import { expect } from "chai";
 import hre from "hardhat";
 const { ethers } = hre;
-import { AGT20Token, AGT20Factory, AGT20Claimable, AGT20ClaimFactory } from "../typechain-types";
 import { SignerWithAddress } from "@nomicfoundation/hardhat-ethers/signers";
+
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
+type AnyContract = any;
 
 describe("AGT20 Contracts", function () {
   let owner: SignerWithAddress;
@@ -14,7 +16,7 @@ describe("AGT20 Contracts", function () {
   });
 
   describe("AGT20Token", function () {
-    let token: AGT20Token;
+    let token: AnyContract;
 
     beforeEach(async function () {
       const AGT20Token = await ethers.getContractFactory("AGT20Token");
@@ -69,7 +71,7 @@ describe("AGT20 Contracts", function () {
   });
 
   describe("AGT20Factory", function () {
-    let factory: AGT20Factory;
+    let factory: AnyContract;
 
     beforeEach(async function () {
       const AGT20Factory = await ethers.getContractFactory("AGT20Factory");
@@ -101,7 +103,7 @@ describe("AGT20 Contracts", function () {
   });
 
   describe("AGT20Claimable", function () {
-    let token: AGT20Claimable;
+    let token: AnyContract;
 
     beforeEach(async function () {
       const AGT20Claimable = await ethers.getContractFactory("AGT20Claimable");
@@ -169,7 +171,7 @@ describe("AGT20 Contracts", function () {
   });
 
   describe("AGT20ClaimFactory", function () {
-    let factory: AGT20ClaimFactory;
+    let factory: AnyContract;
 
     beforeEach(async function () {
       const AGT20ClaimFactory = await ethers.getContractFactory("AGT20ClaimFactory");

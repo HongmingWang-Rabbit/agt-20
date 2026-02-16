@@ -4,7 +4,7 @@ const { ethers } = pkg;
 const CLAIM_FACTORY_ADDRESS = "0x15A169FB7Eb88a05B14Ac75f41fbB6C3A3e4f616";
 
 async function main() {
-  const factory = await ethers.getContractAt("AGT20ClaimFactory", CLAIM_FACTORY_ADDRESS);
+  const factory = await ethers.getContractAt("AGT20ClaimFactory", CLAIM_FACTORY_ADDRESS) as any;
   
   console.log("Factory address:", CLAIM_FACTORY_ADDRESS);
   console.log("Factory signer:", await factory.signer());

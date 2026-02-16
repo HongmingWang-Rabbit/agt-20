@@ -13,7 +13,7 @@ async function main() {
   const chainId = network.chainId;
   console.log("Chain ID:", chainId.toString());
 
-  const factory = await ethers.getContractAt("AGT20ClaimFactory", CLAIM_FACTORY_ADDRESS);
+  const factory = await ethers.getContractAt("AGT20ClaimFactory", CLAIM_FACTORY_ADDRESS) as any;
   
   // Verify the signer
   const factorySigner = await factory.signer();
