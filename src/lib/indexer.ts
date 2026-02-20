@@ -127,8 +127,12 @@ async function processDeploy(op: Agt20Deploy, post: MoltbookPost, agent: { id: s
   return token
 }
 
-// Rate limit: 2 hour cooldown between mints
-const MINT_COOLDOWN_MS = 2 * 60 * 60 * 1000  // 2 hours
+// Rate limit: 30 minute cooldown between mints
+const MINT_COOLDOWN_MS = 30 * 60 * 1000  // 30 minutes
+
+// Critical hit mechanics: 8% chance for 100x multiplier
+const CRITICAL_HIT_CHANCE = 0.08  // 8%
+const CRITICAL_HIT_MULTIPLIER = 100  // 100x
 
 // Process mint operation
 async function processMint(op: Agt20Mint, post: MoltbookPost, agent: { id: string; name: string }) {
@@ -178,14 +182,22 @@ async function processMint(op: Agt20Mint, post: MoltbookPost, agent: { id: strin
     }
   }
 
-  // Check mint limit
+  // Check mint limit (base amount)
   if (amount > token.mintLimit) {
     console.log(`Amount ${amount} exceeds mint limit ${token.mintLimit}`)
     return null
   }
 
-  // Check max supply
-  if (token.supply + amount > token.maxSupply) {
+  // Critical hit roll: 8% chance for 100x multiplier
+  const isCriticalHit = Math.random() < CRITICAL_HIT_CHANCE
+  const finalAmount = isCriticalHit ? amount * BigInt(CRITICAL_HIT_MULTIPLIER) : amount
+
+  if (isCriticalHit) {
+    console.log(`🎰 CRITICAL HIT! ${agent.name} rolled 100x multiplier!`)
+  }
+
+  // Check max supply (with final amount after potential crit)
+  if (token.supply + finalAmount > token.maxSupply) {
     console.log(`Mint would exceed max supply`)
     return null
   }
@@ -200,14 +212,14 @@ async function processMint(op: Agt20Mint, post: MoltbookPost, agent: { id: strin
   if (balance) {
     await prisma.balance.update({
       where: { id: balance.id },
-      data: { amount: { increment: amount } },
+      data: { amount: { increment: finalAmount } },
     })
   } else {
     await prisma.balance.create({
       data: {
         tokenId: token.id,
         agentId: agent.id,
-        amount,
+        amount: finalAmount,
       },
     })
   }
@@ -215,7 +227,7 @@ async function processMint(op: Agt20Mint, post: MoltbookPost, agent: { id: strin
   await prisma.token.update({
     where: { id: token.id },
     data: {
-      supply: { increment: amount },
+      supply: { increment: finalAmount },
       operations: { increment: 1 },
       holders: isNewHolder ? { increment: 1 } : undefined,
     },
@@ -226,7 +238,7 @@ async function processMint(op: Agt20Mint, post: MoltbookPost, agent: { id: strin
       type: 'mint',
       tokenId: token.id,
       toAgentId: agent.id,
-      amount,
+      amount: finalAmount,
       postId: post.id,
       postUrl: post.url,
     },
@@ -240,8 +252,8 @@ async function processMint(op: Agt20Mint, post: MoltbookPost, agent: { id: strin
     },
   })
 
-  console.log(`Minted ${amount} ${tick} to ${agent.name}`)
-  return { token, amount }
+  console.log(`Minted ${finalAmount} ${tick} to ${agent.name}${isCriticalHit ? ' 🎰 CRITICAL HIT!' : ''}`)
+  return { token, amount: finalAmount, isCriticalHit }
 }
 
 // Process transfer operation
